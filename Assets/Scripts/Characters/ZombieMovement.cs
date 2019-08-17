@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ZombieMovement : MonoBehaviour {
+public class ZombieMovement : MonoBehaviour
+{
     [SerializeField]
     private float aggroRadius = 2f;
     private GameObject currentEnemy;
@@ -33,7 +34,7 @@ public class ZombieMovement : MonoBehaviour {
             }
         }
 
-        anim.SetFloat("speed", navAgent.velocity.sqrMagnitude); 
+        anim.SetFloat("speed", navAgent.velocity.sqrMagnitude);
     }
 
     public void SetNewDestination(Vector3 destination)
@@ -47,21 +48,21 @@ public class ZombieMovement : MonoBehaviour {
     private GameObject LookForNearestEnemy()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, aggroRadius);
-            GameObject nearestEnemy = null;
-            float nearestDistance = aggroRadius;
-            foreach (Collider collider in colliders)
+        GameObject nearestEnemy = null;
+        float nearestDistance = aggroRadius;
+        foreach (Collider collider in colliders)
+        {
+            GameObject obj = collider.gameObject;
+            if (obj.tag == "Enemy" || obj.tag == "Building" || obj.tag == "Civilian")
             {
-                GameObject obj = collider.gameObject;
-                if (obj.tag == "Enemy")
+                float distance = Vector3.Distance(obj.transform.position, transform.position);
+                if (distance < nearestDistance)
                 {
-                    float distance = Vector3.Distance(obj.transform.position, transform.position);
-                    if (distance < nearestDistance)
-                    {
-                        nearestEnemy = obj;
-                        nearestDistance = distance;
-                    }
+                    nearestEnemy = obj;
+                    nearestDistance = distance;
                 }
             }
+        }
         return nearestEnemy;
     }
 }

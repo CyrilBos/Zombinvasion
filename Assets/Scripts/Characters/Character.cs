@@ -2,24 +2,18 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Character
+public abstract class Character : MonoBehaviour
 {
     private int curHealth = 100, maxHealth = 100;
-    private int damage = 25;
-    public int Damage { get { return damage; } }
 
-    public Character() { }
+    public int CurHealth { get { return curHealth; } set { curHealth = value; } }
+    public int MaxHealth { get { return maxHealth; } set { maxHealth = value; } }
 
-    public Character(int health, int damage)
+    public abstract void TakeDamage(int amount);
+
+    public void LooseHealth(int amount)
     {
-        this.curHealth = health;
-        this.maxHealth = health;
-        this.damage = damage;
-    }
-
-    public void TakeDamage(int damage)
-    {
-        curHealth -= damage;
+        curHealth -= amount;
         if (curHealth < 0)
         {
             curHealth = 0;

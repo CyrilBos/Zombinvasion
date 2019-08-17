@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Enemy
   - Ground
+  - FxTemporaire
+  - Civilian
+  - Building
   layers:
   - Default
   - TransparentFX

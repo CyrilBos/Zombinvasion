@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
         // GetComponent<LevelGenerator>().GenerateLevel();
         for (int i = 0; i < zombieStartCount; i++)
         {
-            SpawnZombie(ComputeUnitPositionAroundTarget(new Vector3(7,1,0), i));
+            SpawnZombie(ComputeUnitPositionAroundTarget(new Vector3(0, 0, 0), i));
         }
 
         mainCamera = Camera.main;
@@ -68,7 +68,7 @@ public class GameManager : MonoBehaviour
                     int i = 0;
                     foreach (GameObject zombie in zombies)
                     {
-                       zombiesInfo[zombie].movement.SetNewDestination(ComputeUnitPositionAroundTarget(hit.point, i));
+                        zombiesInfo[zombie].movement.SetNewDestination(ComputeUnitPositionAroundTarget(hit.point, i));
                         // zombiesMovements[i].SetNewDestination(ComputePositionAroundCenterZombie(hit.point, i));
                         i += 1;
                     }
@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-       //  SpawnCivilians();
+        SpawnCivilians();
         SpawnEnemies();
     }
 
@@ -97,12 +97,12 @@ public class GameManager : MonoBehaviour
 
         float nearestDistance = Vector3.Distance(zombies[0].transform.position, position);
         GameObject nearestZombie = zombies[0];
-        for(int i = 1; i < zombies.Count; i++)
+        for (int i = 1; i < zombies.Count; i++)
         {
             float distance = Vector3.Distance(zombies[i].transform.position, position);
             if (distance < nearestDistance)
             {
-               nearestDistance = distance;
+                nearestDistance = distance;
                 nearestZombie = zombies[i];
             }
         }
@@ -140,7 +140,7 @@ public class GameManager : MonoBehaviour
     // Computes the target position to stay in the same formation around the new destination
     // Works well if zombies are grouped, but problematic if a zombie wanders off 
     // TODO set a minimum distance between zombies to use this instead of the other 
-     private Vector3 ComputePositionAroundCenterZombie(Vector3 destination, int index)
+    private Vector3 ComputePositionAroundCenterZombie(Vector3 destination, int index)
     {
         return destination - (zombies[0].transform.position - zombies[index].transform.position);
     }
@@ -153,8 +153,12 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            int civiliansSpawn = 1 + (int) Mathf.Floor(Random.value * MaxCiviliansPerSpawn);
-
+            int civiliansSpawnCount = 1 + (int)Mathf.Floor(Random.Range(0.75f, 1.25f) * MaxCiviliansPerSpawn);
+            for (int i = 0; i < civiliansSpawnCount; i++)
+            {
+                Vector3 spawnPosition = GetRandomSpawnPosition();
+                Instantiate(civilianPrefab, spawnPosition, Quaternion.identity);
+            }
             civiliansSpawnCooldown = CiviliansSpawnCooldownValue;
         }
     }
@@ -164,9 +168,10 @@ public class GameManager : MonoBehaviour
         if (enemiesSpawnCooldown > 0f)
         {
             enemiesSpawnCooldown -= Time.deltaTime;
-        } else
+        }
+        else
         {
-            int enemiesSpawnCount = 1 + zombies.Count * (int) Random.Range(0.75f, 1.25f);
+            int enemiesSpawnCount = 1 + zombies.Count * (int)Random.Range(0.75f, 1.25f);
             for (int i = 0; i < enemiesSpawnCount; i++)
             {
                 Vector3 spawnPosition = GetRandomSpawnPosition();
@@ -181,7 +186,7 @@ public class GameManager : MonoBehaviour
         float rng = Random.Range(0, 3);
         Vector3 position;
         float cameraHeight = Camera.main.transform.position.z;
-        switch(rng)
+        switch (rng)
         {
             case 0:
                 position = Camera.main.ScreenToWorldPoint(
@@ -201,7 +206,7 @@ public class GameManager : MonoBehaviour
                   Screen.height + SpawnPixelOffset, cameraHeight));
                 break;
             default:
-                position = new Vector3(0,0,0);
+                position = new Vector3(0, 0, 0);
                 break;
         }
 

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ZombieAttack : MonoBehaviour
+public class ZombieAttack : Attacker
 {
     private int zombIndex;
     public int ZombIndex { get { return zombIndex; } set { zombIndex = value; } }
@@ -12,10 +12,8 @@ public class ZombieAttack : MonoBehaviour
 
     private GameManager gameManager;
 
-    public Character character = new Character();
-
     private GameObject currentEnemy;
-    private EnemyController enemyController;
+    private Character enemyController;
 
     private Animator anim;
 
@@ -40,8 +38,9 @@ public class ZombieAttack : MonoBehaviour
         }
         else if (Vector3.Distance(currentEnemy.transform.position, transform.position) < attackRange)
         {
-             anim.SetBool("attacking", true);
-        } else
+            anim.SetBool("attacking", true);
+        }
+        else
         {
             anim.SetBool("attacking", false);
         }
@@ -52,28 +51,24 @@ public class ZombieAttack : MonoBehaviour
     {
         if (currentEnemy != null)
         {
-            enemyController.TakeDamage(character.Damage);
+            enemyController.TakeDamage(this.Damage);
         }
     }
 
     public void TargetEnemy(GameObject enemy)
     {
         currentEnemy = enemy;
-        enemyController = enemy.GetComponent<EnemyController>();
+
+        enemyController = enemy.GetComponent<Character>();
     }
 
-    public void TakeDamage(int amount)
+    public override void TakeDamage(int amount)
     {
-        character.TakeDamage(amount);
-        if (character.IsDead())
+        this.LooseHealth(amount);
+        if (this.IsDead())
         {
             gameManager.ZombieDied(gameObject);
             Destroy(gameObject);
         }
-    }
-
-    public bool IsDead()
-    {
-        return character.IsDead();
     }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+public class Soldier : Attacker
 {
     public float attackRange = 6f;
     public float AttackCooldownValue = 2f;
@@ -10,8 +10,6 @@ public class EnemyController : MonoBehaviour
     public GameObject muzzleFlashGO;
 
     private float attackCooldown;
-
-    public Character character = new Character(100, 10);
 
     private GameManager gameManager;
     private UnityEngine.AI.NavMeshAgent navAgent;
@@ -24,6 +22,8 @@ public class EnemyController : MonoBehaviour
 
     void Awake()
     {
+        Damage = 15;
+
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         anim = GetComponent<Animator>();
@@ -49,10 +49,12 @@ public class EnemyController : MonoBehaviour
             }
             StopShooting();
         }
-        else if (Vector3.Distance(target.transform.position, transform.position) > attackRange) {
+        else if (Vector3.Distance(target.transform.position, transform.position) > attackRange)
+        {
             navAgent.SetDestination(target.transform.position);
         }
-        else {
+        else
+        {
             if (navAgent.hasPath)
             {
                 navAgent.ResetPath();
@@ -64,7 +66,7 @@ public class EnemyController : MonoBehaviour
                 muzzleFlash.Play();
                 gunSound.Play();
 
-                targetController.TakeDamage(character.Damage);
+                targetController.TakeDamage(this.Damage);
                 if (targetController.IsDead())
                 {
                     target = null;
@@ -85,18 +87,13 @@ public class EnemyController : MonoBehaviour
         gunSound.Stop();
     }
 
-    public void TakeDamage(int amount)
+    public override void TakeDamage(int amount)
     {
-        character.TakeDamage(amount);
-        if (character.IsDead())
+        LooseHealth(amount);
+        if (IsDead())
         {
             gameManager.SpawnZombie(transform.position);
             Destroy(gameObject);
         }
-    }
-
-    public bool IsDead()
-    {
-        return character.IsDead();
     }
 }
