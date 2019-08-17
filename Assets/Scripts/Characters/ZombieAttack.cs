@@ -5,14 +5,10 @@ using UnityEngine;
 public class ZombieAttack : MonoBehaviour
 {
     private int zombIndex;
-    public int ZombIndex { get { return zombIndex; }  set {zombIndex = value; } }
+    public int ZombIndex { get { return zombIndex; } set { zombIndex = value; } }
 
     [SerializeField]
     private float attackRange = 1f;
-
-    [SerializeField]
-    private float attackSpeed = 1f;
-    private float attackCooldown;
 
     private GameManager gameManager;
 
@@ -27,38 +23,37 @@ public class ZombieAttack : MonoBehaviour
     {
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         anim = GetComponent<Animator>();
-        attackCooldown = attackSpeed;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (attackCooldown > 0f)
-        {
-            attackCooldown -= Time.deltaTime;
-        }
         if (currentEnemy == null)
         {
             anim.SetBool("attacking", false);
         }
+        else if (enemyController.IsDead())
+        {
+            currentEnemy = null;
+            enemyController = null;
+            anim.SetBool("attacking", false);
+        }
         else if (Vector3.Distance(currentEnemy.transform.position, transform.position) < attackRange)
         {
-            anim.SetBool("attacking", true);
-            if (attackCooldown <= 0f)
-            {
-                if (enemyController.IsDead())
-                {
-                    currentEnemy = null;
-                    enemyController = null;
-                    anim.SetBool("attacking", false);
-                } else
-                {
-                    enemyController.TakeDamage(character.Damage);
-                }
-                attackCooldown = attackSpeed;
-            }
+             anim.SetBool("attacking", true);
+        } else
+        {
+            anim.SetBool("attacking", false);
         }
-        
+    }
+
+
+    public void AttackEnemy()
+    {
+        if (currentEnemy != null)
+        {
+            enemyController.TakeDamage(character.Damage);
+        }
     }
 
     public void TargetEnemy(GameObject enemy)
@@ -70,7 +65,6 @@ public class ZombieAttack : MonoBehaviour
     public void TakeDamage(int amount)
     {
         character.TakeDamage(amount);
-        anim.Play("hit");
         if (character.IsDead())
         {
             gameManager.ZombieDied(gameObject);

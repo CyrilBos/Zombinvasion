@@ -7,6 +7,8 @@ public class EnemyController : MonoBehaviour
     public float attackRange = 6f;
     public float AttackCooldownValue = 2f;
 
+    public GameObject muzzleFlashGO;
+
     private float attackCooldown;
 
     public Character character = new Character(100, 10);
@@ -14,6 +16,8 @@ public class EnemyController : MonoBehaviour
     private GameManager gameManager;
     private UnityEngine.AI.NavMeshAgent navAgent;
     private Animator anim;
+    private ParticleSystem muzzleFlash;
+    private AudioSource gunSound;
 
     private GameObject target;
     private ZombieAttack targetController;
@@ -23,6 +27,8 @@ public class EnemyController : MonoBehaviour
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         anim = GetComponent<Animator>();
+        muzzleFlash = muzzleFlashGO.GetComponent<ParticleSystem>();
+        gunSound = GetComponent<AudioSource>();
         attackCooldown = AttackCooldownValue;
     }
 
@@ -41,7 +47,7 @@ public class EnemyController : MonoBehaviour
             {
                 targetController = target.GetComponent<ZombieAttack>();
             }
-            anim.SetBool("shooting", false);
+            StopShooting();
         }
         else if (Vector3.Distance(target.transform.position, transform.position) > attackRange) {
             navAgent.SetDestination(target.transform.position);
@@ -51,21 +57,32 @@ public class EnemyController : MonoBehaviour
             {
                 navAgent.ResetPath();
             }
+            transform.LookAt(target.transform);
             if (attackCooldown <= 0f)
             {
                 anim.SetBool("shooting", true);
+                muzzleFlash.Play();
+                gunSound.Play();
+
                 targetController.TakeDamage(character.Damage);
                 if (targetController.IsDead())
                 {
                     target = null;
                     targetController = null;
-                    anim.SetBool("shooting", false);
+                    StopShooting();
                 }
                 attackCooldown = AttackCooldownValue;
             }
         }
 
         anim.SetFloat("speed", navAgent.velocity.sqrMagnitude);
+    }
+
+    private void StopShooting()
+    {
+        anim.SetBool("shooting", false);
+        muzzleFlash.Stop();
+        gunSound.Stop();
     }
 
     public void TakeDamage(int amount)

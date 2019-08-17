@@ -27,6 +27,7 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private float positioningOffset = 0.3f;
 
+    private Camera mainCamera;
     private CameraMovement cameraMovement;
 
     private Dictionary<GameObject, ZombieInfo> zombiesInfo = new Dictionary<GameObject, ZombieInfo>();
@@ -42,12 +43,14 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        GetComponent<LevelGenerator>().GenerateLevel();
+        // GetComponent<LevelGenerator>().GenerateLevel();
         for (int i = 0; i < zombieStartCount; i++)
         {
-            SpawnZombie(ComputeUnitPositionAroundTarget(new Vector3(0,0,0), i));
+            SpawnZombie(ComputeUnitPositionAroundTarget(new Vector3(7,1,0), i));
         }
-        cameraMovement = Camera.main.GetComponent<CameraMovement>();
+
+        mainCamera = Camera.main;
+        cameraMovement = mainCamera.GetComponent<CameraMovement>();
         cameraMovement.Target = zombies[0];
     }
 
@@ -56,9 +59,8 @@ public class GameManager : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(1))
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
             RaycastHit hit;
-
             if (Physics.Raycast(ray.origin, ray.direction, out hit))
             {
                 if (hit.collider.tag == "Ground")
@@ -119,6 +121,7 @@ public class GameManager : MonoBehaviour
             zombiesInfo.Remove(zombie);
             zombies.Remove(zombie);
         }
+        cameraMovement.ScreenShake();
     }
 
     /**
