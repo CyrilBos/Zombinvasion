@@ -7,15 +7,19 @@ public class Civilian : Character
     [SerializeField]
     private float fleeRadius = 10f, fleeDestinationDistance = 30f;
 
+    [SerializeField]
+    static private float maxExplorationDistance = 10f;
+
     private GameManager gameManager;
     private UnityEngine.AI.NavMeshAgent navAgent;
 
     private Animation anim;
 
+    private bool hasDestination = false;
+    private Building building = null;
+
     void Awake()
     {
-        CurHealth = MaxHealth = 50;
-
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         anim = GetComponent<Animation>();
@@ -25,25 +29,40 @@ public class Civilian : Character
     void Update()
     {
         Collider[] colliders = Physics.OverlapSphere(transform.position, fleeRadius);
-        bool foundDestination = false;
         int i = 0;
-        while (!foundDestination && i < colliders.Length)
+        while (!hasDestination && i < colliders.Length)
         {
             GameObject go = colliders[i].gameObject;
             string tag = go.tag;
             if (tag == "Building")
             {
-                navAgent.SetDestination(go.transform.position);
-                foundDestination = true;
+                Building foundBuilding = go.GetComponent<Building>();
+                if (foundBuilding.IsNotFull())
+                {
+                    navAgent.SetDestination(go.transform.position);
+                    building = foundBuilding;
+                    hasDestination = true;
+                }
             }
             else if (go.tag == "Player")
             {
                 Vector3 direction = (go.transform.position - transform.position).normalized;
                 navAgent.SetDestination(transform.position + direction * fleeDestinationDistance);
-                foundDestination = true;
+                hasDestination = true;
             }
 
             i++;
+        }
+
+        if (hasDestination && building != null && !building.IsNotFull())
+        {
+            hasDestination = false;
+            building = null;
+        }
+
+        if (!hasDestination)
+        {
+            navAgent.SetDestination(transform.position + maxExplorationDistance * Random.insideUnitSphere);
         }
 
         if (navAgent.velocity.sqrMagnitude > 0)
@@ -56,13 +75,8 @@ public class Civilian : Character
         }
     }
 
-    public override void TakeDamage(int amount)
+    protected override void OnDeath()
     {
-        LooseHealth(amount);
-        if (IsDead())
-        {
-            gameManager.SpawnZombie(transform.position);
-            Destroy(gameObject);
-        }
+        gameManager.SpawnZombie(transform.position);
     }
 }

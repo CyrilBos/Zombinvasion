@@ -36,14 +36,21 @@ public class ZombieAttack : Attacker
             enemyController = null;
             anim.SetBool("attacking", false);
         }
-        else if (Vector3.Distance(currentEnemy.transform.position, transform.position) < attackRange)
-        {
-            anim.SetBool("attacking", true);
-        }
         else
         {
-            anim.SetBool("attacking", false);
+            RaycastHit hit;
+            Debug.DrawRay(transform.position, currentEnemy.transform.position - transform.position);
+            if (Physics.Raycast(transform.position, currentEnemy.transform.position - transform.position, out hit))
+            {
+                transform.LookAt(currentEnemy.transform);
+                anim.SetBool("attacking", true);
+            }
+            else
+            {
+                anim.SetBool("attacking", false);
+            }
         }
+
     }
 
 
@@ -51,24 +58,19 @@ public class ZombieAttack : Attacker
     {
         if (currentEnemy != null)
         {
-            enemyController.TakeDamage(this.Damage);
+            enemyController.TakeDamage(this.damage);
         }
     }
 
     public void TargetEnemy(GameObject enemy)
     {
+        Debug.Log(enemy.tag);
         currentEnemy = enemy;
-
         enemyController = enemy.GetComponent<Character>();
     }
 
-    public override void TakeDamage(int amount)
+    protected override void OnDeath()
     {
-        this.LooseHealth(amount);
-        if (this.IsDead())
-        {
-            gameManager.ZombieDied(gameObject);
-            Destroy(gameObject);
-        }
+        gameManager.ZombieDied(gameObject);
     }
 }

@@ -276,6 +276,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5509e8af218541c2aafcdf3956901f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 50
+  curHealth: 50
   fleeRadius: 10
   fleeDestinationDistance: 30
 --- !u!195 &6072213199231740157

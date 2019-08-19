@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using Helpers;
 public class ZombieMovement : MonoBehaviour
 {
     [SerializeField]
-    private float aggroRadius = 2f;
+    private float aggroRadius = 2f, triggerFollowDistance = 3f;
     private GameObject currentEnemy;
 
     private ZombieAttack playerAttack;
@@ -33,6 +33,10 @@ public class ZombieMovement : MonoBehaviour
                 navAgent.SetDestination(currentEnemy.transform.position);
             }
         }
+        else if (Vector3.Distance(transform.position, currentEnemy.transform.position) > triggerFollowDistance)
+        {
+            navAgent.SetDestination(currentEnemy.transform.position);
+        }
 
         anim.SetFloat("speed", navAgent.velocity.sqrMagnitude);
     }
@@ -47,22 +51,34 @@ public class ZombieMovement : MonoBehaviour
 
     private GameObject LookForNearestEnemy()
     {
-        Collider[] colliders = Physics.OverlapSphere(transform.position, aggroRadius);
-        GameObject nearestEnemy = null;
-        float nearestDistance = aggroRadius;
-        foreach (Collider collider in colliders)
+        Collider[] colliders = Physics.OverlapSphere(transform.position, aggroRadius, LayerHelpers.NoGroundMask);
+        if (colliders.Length > 0)
         {
-            GameObject obj = collider.gameObject;
+            GameObject obj = colliders[0].gameObject;
+            GameObject nearestEnemy = null;
+            float nearestDistance = Mathf.Infinity;
             if (obj.tag == "Enemy" || obj.tag == "Building" || obj.tag == "Civilian")
             {
-                float distance = Vector3.Distance(obj.transform.position, transform.position);
-                if (distance < nearestDistance)
+                nearestEnemy = colliders[0].gameObject;
+                nearestDistance = Vector3.Distance(transform.position, colliders[0].gameObject.transform.position);
+            }
+            for (int i = 1; i < colliders.Length; i++)
+            {
+                obj = colliders[i].gameObject;
+                if (obj.tag == "Enemy" || obj.tag == "Building" || obj.tag == "Civilian")
                 {
-                    nearestEnemy = obj;
-                    nearestDistance = distance;
+                    float distance = Vector3.Distance(obj.transform.position, transform.position);
+                    if (distance < nearestDistance)
+                    {
+                        nearestEnemy = obj;
+                        nearestDistance = distance;
+                    }
                 }
             }
+
+            return nearestEnemy;
         }
-        return nearestEnemy;
+
+        return null;
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
+using Helpers;
 
 struct ZombieInfo
 {
@@ -24,29 +25,30 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int zombieStartCount = 1;
 
-    [SerializeField]
-    private float positioningOffset = 0.3f;
-
     private Camera mainCamera;
     private CameraMovement cameraMovement;
 
     private Dictionary<GameObject, ZombieInfo> zombiesInfo = new Dictionary<GameObject, ZombieInfo>();
     private List<GameObject> zombies = new List<GameObject>();
 
+    [SerializeField]
     static private int MaxCiviliansPerSpawn = 5;
     static private int SpawnPixelOffset = 50;
-    static private float EnemiesSpawnCooldownValue = 5f;
-    static private float CiviliansSpawnCooldownValue = 10f;
+
+    [SerializeField]
+    static private float EnemiesSpawnCooldownValue = 15f, CiviliansSpawnCooldownValue = 10f;
 
     private float enemiesSpawnCooldown = EnemiesSpawnCooldownValue;
     private float civiliansSpawnCooldown = CiviliansSpawnCooldownValue;
 
-    void Start()
+    void Awake()
     {
         // GetComponent<LevelGenerator>().GenerateLevel();
         for (int i = 0; i < zombieStartCount; i++)
         {
-            SpawnZombie(ComputeUnitPositionAroundTarget(new Vector3(0, 0, 0), i));
+            Vector3 position = PositionHelpers.ComputeUnitPositionAroundTarget(new Vector3(0, 0, 0), i);
+            Debug.Log(position);
+            SpawnZombie(position);
         }
 
         mainCamera = Camera.main;
@@ -68,7 +70,7 @@ public class GameManager : MonoBehaviour
                     int i = 0;
                     foreach (GameObject zombie in zombies)
                     {
-                        zombiesInfo[zombie].movement.SetNewDestination(ComputeUnitPositionAroundTarget(hit.point, i));
+                        zombiesInfo[zombie].movement.SetNewDestination(PositionHelpers.ComputeUnitPositionAroundTarget(hit.point, i));
                         // zombiesMovements[i].SetNewDestination(ComputePositionAroundCenterZombie(hit.point, i));
                         i += 1;
                     }
@@ -124,19 +126,6 @@ public class GameManager : MonoBehaviour
         cameraMovement.ScreenShake();
     }
 
-    /**
-   * Computes the position of the unit to form a circle with the others
-   */
-    private Vector3 ComputeUnitPositionAroundTarget(Vector3 center, int index)
-    {
-        if (index == 0)
-            return center;
-
-        int angle = index * (360 / zombies.Count);
-        Vector3 direction = Quaternion.Euler(0, 0, angle) * center;
-        return center + direction * positioningOffset * (index / 9);
-    }
-
     // Computes the target position to stay in the same formation around the new destination
     // Works well if zombies are grouped, but problematic if a zombie wanders off 
     // TODO set a minimum distance between zombies to use this instead of the other 
@@ -154,11 +143,7 @@ public class GameManager : MonoBehaviour
         else
         {
             int civiliansSpawnCount = 1 + (int)Mathf.Floor(Random.Range(0.75f, 1.25f) * MaxCiviliansPerSpawn);
-            for (int i = 0; i < civiliansSpawnCount; i++)
-            {
-                Vector3 spawnPosition = GetRandomSpawnPosition();
-                Instantiate(civilianPrefab, spawnPosition, Quaternion.identity);
-            }
+            SpawnEntities(civilianPrefab, civiliansSpawnCount);
             civiliansSpawnCooldown = CiviliansSpawnCooldownValue;
         }
     }
@@ -172,36 +157,47 @@ public class GameManager : MonoBehaviour
         else
         {
             int enemiesSpawnCount = 1 + zombies.Count * (int)Random.Range(0.75f, 1.25f);
-            for (int i = 0; i < enemiesSpawnCount; i++)
-            {
-                Vector3 spawnPosition = GetRandomSpawnPosition();
-                Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
-            }
+            SpawnEntities(enemyPrefab, enemiesSpawnCount);
             enemiesSpawnCooldown = EnemiesSpawnCooldownValue;
         }
     }
 
-    private Vector3 GetRandomSpawnPosition()
+    private void SpawnEntities(GameObject prefab, int count)
     {
-        float rng = Random.Range(0, 3);
+        for (int i = 0; i < count; i++)
+        {
+            Vector3 spawnPosition = GetRandomWorldScreenCornerPosition();
+            spawnPosition = PositionHelpers.ComputeUnitPositionAroundTarget(spawnPosition, i + 1);
+            while (Physics.OverlapSphere(spawnPosition, 1, LayerHelpers.NoGroundMask).Length > 0)
+            {
+                spawnPosition.x += 1;
+                spawnPosition.z += 1;
+            }
+            Instantiate(prefab, spawnPosition, Quaternion.identity);
+        }
+    }
+
+    private Vector3 GetRandomWorldScreenCornerPosition()
+    {
+        float corner = Random.Range(0, 3);
         Vector3 position;
-        float cameraHeight = Camera.main.transform.position.z;
-        switch (rng)
+        float cameraHeight = mainCamera.transform.position.z;
+        switch (corner)
         {
             case 0:
-                position = Camera.main.ScreenToWorldPoint(
+                position = mainCamera.ScreenToWorldPoint(
                     new Vector3(-SpawnPixelOffset, 0, cameraHeight));
                 break;
             case 1:
-                position = Camera.main.ScreenToWorldPoint(
+                position = mainCamera.ScreenToWorldPoint(
                     new Vector3(0, -SpawnPixelOffset, cameraHeight));
                 break;
             case 2:
-                position = Camera.main.ScreenToWorldPoint(
+                position = mainCamera.ScreenToWorldPoint(
                     new Vector3(Screen.width + SpawnPixelOffset, 0, cameraHeight));
                 break;
             case 3:
-                position = Camera.main.ScreenToWorldPoint(
+                position = mainCamera.ScreenToWorldPoint(
               new Vector3(Screen.width + SpawnPixelOffset,
                   Screen.height + SpawnPixelOffset, cameraHeight));
                 break;
@@ -210,7 +206,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        position.y = 1;
+        position.y = 0;
         return position;
     }
 }

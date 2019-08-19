@@ -4,12 +4,18 @@ using UnityEngine;
 
 public abstract class Character : MonoBehaviour
 {
-    private int curHealth = 100, maxHealth = 100;
+    [SerializeField]
+    protected int maxHealth = 100, curHealth = 100;
 
-    public int CurHealth { get { return curHealth; } set { curHealth = value; } }
-    public int MaxHealth { get { return maxHealth; } set { maxHealth = value; } }
-
-    public abstract void TakeDamage(int amount);
+    public void TakeDamage(int amount)
+    {
+        this.LooseHealth(amount);
+        if (this.IsDead())
+        {
+            OnDeath();
+            Destroy(gameObject);
+        }
+    }
 
     public void LooseHealth(int amount)
     {
@@ -24,4 +30,6 @@ public abstract class Character : MonoBehaviour
     {
         return curHealth <= 0;
     }
+
+    protected abstract void OnDeath();
 }

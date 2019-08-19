@@ -22,8 +22,6 @@ public class Soldier : Attacker
 
     void Awake()
     {
-        Damage = 15;
-
         gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         navAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
         anim = GetComponent<Animator>();
@@ -66,7 +64,7 @@ public class Soldier : Attacker
                 muzzleFlash.Play();
                 gunSound.Play();
 
-                targetController.TakeDamage(this.Damage);
+                targetController.TakeDamage(this.damage);
                 if (targetController.IsDead())
                 {
                     target = null;
@@ -87,13 +85,8 @@ public class Soldier : Attacker
         gunSound.Stop();
     }
 
-    public override void TakeDamage(int amount)
+    protected override void OnDeath()
     {
-        LooseHealth(amount);
-        if (IsDead())
-        {
-            gameManager.SpawnZombie(transform.position);
-            Destroy(gameObject);
-        }
+        gameManager.SpawnZombie(transform.position);
     }
 }
