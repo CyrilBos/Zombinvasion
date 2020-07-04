@@ -4,3 +4,5 @@ Dead enemies can transform in new zombies for you. You also have a "rage" abilit
 The enemies are either citizens or soldiers with guns. Citizens flee to buildings you can destroy.
 
 Inspired from older flash games with a similar concept in 2D, with set levels and objectives.
+
+Made with Unity v.2019 (I think .2 originally but probably upgradable to .3)
